@@ -6,6 +6,13 @@ set -x
 
 echo "Starting Ollama Mistral deployment..."
 
+# Check and install pip3 if not available
+if ! command -v pip3 &> /dev/null; then
+    echo "Installing pip3..."
+    sudo apt-get update
+    sudo apt-get install -y python3-pip
+fi
+
 # Install Python dependencies
 pip3 install -r requirements.txt
 
