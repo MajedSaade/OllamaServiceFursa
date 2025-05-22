@@ -1,6 +1,6 @@
-# Ollama with Gemma 3:1b Automated Deployment
+# Ollama with Gemma 2B Automated Deployment
 
-This repository contains automation scripts to deploy Ollama with the Gemma 3:1b model on an EC2 instance using GitHub Actions for continuous deployment.
+This repository contains automation scripts to deploy Ollama with the Gemma 2B model on an EC2 instance using GitHub Actions for continuous deployment.
 
 ## Repository Structure
 
@@ -48,7 +48,7 @@ You can test the model directly on your EC2 instance:
 
 ```bash
 curl -X POST http://localhost:11434/api/generate -d '{
-  "model": "gemma:3b-1.1",
+  "model": "gemma:2b",
   "prompt": "What is the capital of France?"
 }'
 ```
