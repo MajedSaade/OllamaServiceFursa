@@ -1,7 +1,7 @@
-# Ollama Llama 3.2 (3B) Deployment
+# Ollama Gemma 3 (1B) Deployment
 
-This repository contains an automated deployment solution for Ollama with the Llama 3.2 (3B) LLM model on an EC2 instance using GitHub Actions.
-#Just to push
+This repository contains an automated deployment solution for Ollama with the Gemma 3 (1B) LLM model on an EC2 instance using GitHub Actions.
+
 ## Setup Instructions
 
 ### 1. Prerequisites
@@ -34,7 +34,7 @@ Add the following secrets to your GitHub repository:
    - Execute the deployment script
    - Install Ollama if needed
    - Configure the systemd service
-   - Pull the Llama 3.2 (3B) model (if not already downloaded)
+   - Pull the Gemma 3 (1B) model (if not already downloaded)
    - Verify the deployment
 
 ### 5. Accessing Ollama
@@ -45,7 +45,7 @@ Once deployed, Ollama will be accessible on your EC2 instance:
 Example API usage:
 ```bash
 curl -X POST http://<your-ec2-ip>:11434/api/generate -d '{
-  "model": "llama3:3b",
+  "model": "gemma3:1b",
   "prompt": "Hello, how are you?",
   "stream": false
 }'

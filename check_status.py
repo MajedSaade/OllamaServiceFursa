@@ -6,7 +6,7 @@ import sys
 from datetime import datetime
 
 def check_ollama_status(host="localhost", port=11434):
-    """Check the status of the Ollama service and Llama 3.2 (3B) model"""
+    """Check the status of the Ollama service and Gemma 3 (1B) model"""
     base_url = f"http://{host}:{port}"
     
     try:
@@ -28,25 +28,25 @@ def check_ollama_status(host="localhost", port=11434):
             for model in models_data['models']:
                 print(f" - {model['name']} ({model.get('size', 'unknown size')})")
             
-            # Check if Llama 3.2 (3B) is available
-            if any(model['name'] == 'llama3:3b' for model in models_data['models']):
-                print("\n✅ Llama 3.2 (3B) model is available")
+            # Check if Gemma 3 (1B) is available
+            if any(model['name'] == 'gemma3:1b' for model in models_data['models']):
+                print("\n✅ Gemma 3 (1B) model is available")
                 
                 # Test the model
-                print("\nTesting Llama 3.2 (3B) model with a simple prompt...")
+                print("\nTesting Gemma 3 (1B) model with a simple prompt...")
                 test_response = requests.post(
                     f"{base_url}/api/generate",
-                    json={"model": "llama3:3b", "prompt": "What is your name?", "stream": False}
+                    json={"model": "gemma3:1b", "prompt": "What is your name?", "stream": False}
                 )
                 
                 if test_response.status_code == 200:
                     result = test_response.json()
                     print(f"Model response: {result.get('response', 'No response')}")
-                    print("\n✅ Llama 3.2 (3B) model is working correctly!")
+                    print("\n✅ Gemma 3 (1B) model is working correctly!")
                 else:
                     print(f"\n❌ Failed to test model: {test_response.status_code}")
             else:
-                print("\n❌ Llama 3.2 (3B) model is not available")
+                print("\n❌ Gemma 3 (1B) model is not available")
                 return False
         else:
             print("No models found")
