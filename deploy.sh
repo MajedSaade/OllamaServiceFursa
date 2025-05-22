@@ -6,15 +6,21 @@ set -x
 
 echo "Starting Ollama Mistral deployment..."
 
-# Check and install pip3 if not available
-if ! command -v pip3 &> /dev/null; then
-    echo "Installing pip3..."
-    sudo apt-get update
-    sudo apt-get install -y python3-pip
+# Check and install required packages
+sudo apt-get update
+sudo apt-get install -y python3-venv python3-full curl
+
+# Create a virtual environment if it doesn't exist
+VENV_DIR="$HOME/ollama_venv"
+if [ ! -d "$VENV_DIR" ]; then
+    echo "Creating Python virtual environment..."
+    python3 -m venv "$VENV_DIR"
 fi
 
-# Install Python dependencies
-pip3 install -r requirements.txt
+# Activate virtual environment and install dependencies
+source "$VENV_DIR/bin/activate"
+pip install --upgrade pip
+pip install -r requirements.txt
 
 # Install Ollama if not already installed
 if ! command -v ollama &> /dev/null; then
@@ -42,7 +48,7 @@ if ! ollama list | grep -q mistral; then
 fi
 
 # Run the Python setup script
-python3 setup_ollama.py
+"$VENV_DIR/bin/python3" setup_ollama.py
 
 # Check if the service is active
 if ! systemctl is-active --quiet ollama.service; then
@@ -62,5 +68,8 @@ curl -X POST http://localhost:11434/api/generate -d '{
   "stream": false
 }'
 echo -e "\n"
+
+# Deactivate virtual environment
+deactivate
 
 echo "Deployment completed successfully!" 
