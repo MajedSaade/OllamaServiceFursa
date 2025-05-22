@@ -12,6 +12,14 @@ else
     echo "Ollama is already installed."
 fi
 
+# Check if pip3 is installed, install it if missing
+if ! command -v pip3 &> /dev/null; then
+    echo "pip3 not found, installing python3-pip..."
+    sudo apt-get update
+    sudo apt-get install -y python3-pip
+    echo "pip3 installed successfully!"
+fi
+
 # Install dependencies for Python script
 echo "Installing Python dependencies..."
 pip3 install -r requirements.txt
