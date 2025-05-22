@@ -39,6 +39,18 @@ sudo systemctl enable ollama.service
 echo "Waiting for Ollama service to start..."
 sleep 5
 
+# Make sure Ollama directories exist and are properly initialized
+echo "Initializing Ollama directories..."
+mkdir -p ~/.ollama
+if [ ! -f ~/.ollama/id_ed25519 ]; then
+    echo "Generating Ollama SSH key..."
+    ssh-keygen -t ed25519 -f ~/.ollama/id_ed25519 -N ""
+fi
+
+# Restart Ollama to pick up the new key
+sudo systemctl restart ollama.service
+sleep 5
+
 # Pull the Gemma model
 echo "Pulling Gemma-3-1b model..."
 ollama pull gemma:3b-1.1
