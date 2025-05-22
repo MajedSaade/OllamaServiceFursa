@@ -7,6 +7,46 @@ set -x
 
 echo "Starting Ollama Gemma 3 1B deployment..."
 
+# Check disk space and clean up if needed
+echo "Checking disk space..."
+AVAILABLE_SPACE=$(df -h / | awk 'NR==2 {print $4}')
+USAGE_PERCENT=$(df -h / | awk 'NR==2 {print $5}' | sed 's/%//')
+
+echo "Available space: $AVAILABLE_SPACE, Usage: $USAGE_PERCENT%"
+
+if [ "$USAGE_PERCENT" -gt 80 ]; then
+    echo "Disk space critical at $USAGE_PERCENT%. Cleaning up..."
+    
+    # Clean package cache
+    sudo apt-get clean
+    sudo apt-get autoclean
+    sudo apt-get autoremove -y
+    
+    # Remove old logs
+    sudo journalctl --vacuum-time=1d
+    
+    # Clean temp files
+    sudo rm -rf /tmp/*
+    
+    # Remove old Ollama models if they exist (except gemma3:1b)
+    if [ -d ~/.ollama/models ]; then
+        echo "Selectively removing old Ollama models to free space (keeping gemma3:1b if present)..."
+        # List all models
+        if ollama list 2>/dev/null | grep -v "gemma3:1b" | grep -q ":"; then
+            # Get models besides gemma3:1b
+            other_models=$(ollama list 2>/dev/null | grep -v "gemma3:1b" | grep ":" | awk '{print $1}')
+            for model in $other_models; do
+                echo "Removing model: $model"
+                ollama rm $model
+            done
+        fi
+    fi
+    
+    # Show new disk space
+    echo "Disk space after cleanup:"
+    df -h /
+fi
+
 # Function to install Python packages using pip directly
 install_with_pip_directly() {
     echo "Installing packages directly with pip --break-system-packages flag..."
@@ -83,6 +123,10 @@ if ! systemctl is-active --quiet ollama.service; then
     sleep 10
 fi
 
+# Check disk space again before pulling model
+AVAILABLE_SPACE_MB=$(df -BM / | awk 'NR==2 {print $4}' | sed 's/M//')
+echo "Available space before pulling model: ${AVAILABLE_SPACE_MB}MB"
+
 # Test Ollama connectivity
 echo "Testing Ollama connectivity..."
 if ! curl -s -f http://localhost:11434/api/tags > /dev/null; then
@@ -98,9 +142,21 @@ fi
 if curl -s -f http://localhost:11434/api/tags > /dev/null; then
     echo "✅ Ollama API is now accessible!"
     
-    # Pull the Gemma 3 1B model
-    echo "Pulling Gemma 3 1B model..."
-    ollama pull gemma3:1b
+    # Check if model already exists before pulling
+    if ollama list 2>/dev/null | grep -q "gemma3:1b"; then
+        echo "✅ Gemma 3 1B model already exists, skipping download"
+    else
+        # Gemma 3 1B requires at least 2GB free space
+        if [ "$AVAILABLE_SPACE_MB" -lt 2000 ]; then
+            echo "❌ Not enough disk space to pull Gemma 3 1B model (${AVAILABLE_SPACE_MB}MB available)"
+            echo "Please expand your disk or use a smaller model"
+            exit 1
+        fi
+    
+        # Pull the Gemma 3 1B model
+        echo "Pulling Gemma 3 1B model..."
+        ollama pull gemma3:1b
+    fi
 
     # Check if the model was pulled successfully
     if ollama list | grep -q "gemma3:1b"; then
@@ -120,7 +176,7 @@ if curl -s -f http://localhost:11434/api/tags > /dev/null; then
         
         echo "Deployment completed successfully!"
     else
-        echo "❌ Failed to pull Mistral model."
+        echo "❌ Failed to pull Gemma 3 1B model."
         exit 1
     fi
 else
