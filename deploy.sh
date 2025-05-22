@@ -1,75 +1,47 @@
 #!/bin/bash
-# Exit on any error with details
 set -e
 
-# Print execution steps
-set -x
+echo "Starting Ollama with Gemma deployment..."
 
-echo "Starting Ollama Gemma 3 (1B) deployment..."
-
-# Install Python dependencies if needed
-if ! python3 -c "import requests, yaml" &>/dev/null; then
-    echo "Installing Python dependencies..."
-    sudo apt-get update
-    sudo apt-get install -y python3-requests python3-yaml || \
-    python3 -m pip install --break-system-packages requests pyyaml
-fi
-
-# Get the current user for the service file
-CURRENT_USER=$(whoami)
-echo "Current user: $CURRENT_USER"
-
-# Update the service file with the current user
-sed -i "s/User=ubuntu/User=$CURRENT_USER/g" ollama.service
-
-# Install Ollama if not already installed
+# Check if Ollama is already installed
 if ! command -v ollama &> /dev/null; then
     echo "Installing Ollama..."
     curl -fsSL https://ollama.com/install.sh | sh
-    sleep 5
+    echo "Ollama installed successfully!"
+else
+    echo "Ollama is already installed."
 fi
 
-# Copy the systemd service file and restart service
+# Install dependencies for Python script
+echo "Installing Python dependencies..."
+pip3 install -r requirements.txt
+
+# Copy the systemd service file
+echo "Setting up Ollama service..."
 sudo cp ollama.service /etc/systemd/system/
+
+# Reload systemd and restart the service
 sudo systemctl daemon-reload
 sudo systemctl restart ollama.service
 sudo systemctl enable ollama.service
 
-# Wait for Ollama to be fully up
+# Wait for Ollama service to be fully started
 echo "Waiting for Ollama service to start..."
-sleep 10
+sleep 5
 
-# Check if Ollama is running
-if ! curl -s -f http://localhost:11434/api/tags &>/dev/null; then
-    echo "Ollama service not responding. Starting manually..."
-    sudo systemctl status ollama.service --no-pager || true
-    nohup ollama serve > ollama.log 2>&1 &
-    sleep 15
+# Pull the Gemma model
+echo "Pulling Gemma-3-1b model..."
+ollama pull gemma:3b-1.1
+
+# Run our monitoring script
+echo "Starting the monitoring Python script..."
+python3 app.py &
+
+# Check if the service is active
+if ! systemctl is-active --quiet ollama.service; then
+  echo "❌ ollama.service is not running."
+  sudo systemctl status ollama.service --no-pager
+  exit 1
 fi
 
-# Check if we can connect to Ollama now
-if curl -s -f http://localhost:11434/api/tags > /dev/null; then
-    echo "✅ Ollama API is accessible!"
-    
-    # Check if Gemma 3 1B is already downloaded
-    if ollama list | grep -q "gemma3:1b"; then
-        echo "✅ Gemma 3 (1B) model already downloaded"
-    else
-        echo "Downloading Gemma 3 (1B) model..."
-        ollama pull gemma3:1b
-    fi
-    
-    # Verify model is working
-    echo -e "\nTesting Gemma 3 (1B) model..."
-    curl -X POST http://localhost:11434/api/generate -d '{
-      "model": "gemma3:1b",
-      "prompt": "Hello, please introduce yourself briefly.",
-      "stream": false
-    }'
-    echo -e "\n"
-    
-    echo "Deployment completed successfully!"
-else
-    echo "❌ Cannot connect to Ollama API after multiple attempts."
-    exit 1
-fi 
+echo "✅ Ollama with Gemma-3-1b deployed successfully!" 

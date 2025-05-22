@@ -1,13 +1,16 @@
 [Unit]
-Description=Ollama Gemma 3 (1B) Service
+Description=Ollama Service
 After=network.target
 
 [Service]
-ExecStart=/usr/bin/ollama serve
+Type=simple
+User=root
+ExecStart=/usr/local/bin/ollama serve
 Restart=always
 RestartSec=5
-Environment="OLLAMA_HOST=0.0.0.0:11434"
-User=ubuntu
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=ollama
 
 [Install]
 WantedBy=multi-user.target 

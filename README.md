@@ -1,85 +1,69 @@
-# Ollama Gemma 3 (1B) Deployment
+# Ollama with Gemma 3:1b Automated Deployment
 
-This repository contains an automated deployment solution for Ollama with the Gemma 3 (1B) LLM model on an EC2 instance using GitHub Actions.
+This repository contains automation scripts to deploy Ollama with the Gemma 3:1b model on an EC2 instance using GitHub Actions for continuous deployment.
+
+## Repository Structure
+
+- `.github/workflows/deploy.yaml`: GitHub Actions workflow for deployment
+- `deploy.sh`: Script to deploy Ollama and the Gemma model on the EC2 instance
+- `ollama.service`: Systemd service file for running Ollama
+- `app.py`: Python monitoring script for Ollama
+- `requirements.txt`: Python dependencies
 
 ## Setup Instructions
 
-### 1. Prerequisites
-
-- An AWS EC2 instance running Linux
-- GitHub repository
-- SSH access to the EC2 instance
-
-### 2. GitHub Secrets Configuration
+### 1. Configure GitHub Secrets
 
 Add the following secrets to your GitHub repository:
 
-- `EC2_SSH_KEY`: Your private SSH key for connecting to the EC2 instance
+- `EC2_SSH_KEY`: Your private SSH key to connect to the EC2 instance
 - `EC2_HOST`: The hostname or IP address of your EC2 instance
-- `EC2_USERNAME`: The username to connect to your EC2 instance (usually "ubuntu" for Ubuntu-based instances)
+- `EC2_USERNAME`: The username to use when connecting to EC2 (e.g., `ubuntu`, `ec2-user`)
 
-### 3. Repository Structure
+### 2. EC2 Instance Requirements
 
-- `.github/workflows/deploy.yaml`: GitHub Actions workflow file
-- `deploy.sh`: Deployment script to install and configure Ollama
-- `ollama.service`: Systemd service file for Ollama
-- `setup_ollama.py`: Python script for additional setup and verification
-- `check_status.py`: Script to check the status of Ollama deployment
+- Ubuntu or similar Linux distribution
+- Python 3 installed
+- Sufficient disk space for the Gemma model (at least 5GB free)
+- Sufficient RAM (at least 8GB recommended)
 
-### 4. Deployment Process
+### 3. Deployment
 
-1. Push your code to the `main` branch or manually trigger the workflow
-2. GitHub Actions will:
-   - Clone/update the repository on your EC2 instance
-   - Execute the deployment script
-   - Install Ollama if needed
-   - Configure the systemd service
-   - Pull the Gemma 3 (1B) model (if not already downloaded)
-   - Verify the deployment
+The deployment can be triggered in two ways:
 
-### 5. Accessing Ollama
+1. Push to the `main` branch
+2. Manually from the GitHub Actions tab in your repository
 
-Once deployed, Ollama will be accessible on your EC2 instance:
-- API endpoint: `http://<your-ec2-ip>:11434/api/generate`
+### 4. Verification
 
-Example API usage:
+After deployment:
+
+1. SSH into your EC2 instance
+2. Check the status of the Ollama service: `sudo systemctl status ollama.service`
+3. Check the logs: `cat ollama_monitor.log`
+
+## Testing the Gemma Model
+
+You can test the model directly on your EC2 instance:
+
 ```bash
-curl -X POST http://<your-ec2-ip>:11434/api/generate -d '{
-  "model": "gemma3:1b",
-  "prompt": "Hello, how are you?",
-  "stream": false
+curl -X POST http://localhost:11434/api/generate -d '{
+  "model": "gemma:3b-1.1",
+  "prompt": "What is the capital of France?"
 }'
-```
-
-## Manual Deployment
-
-If you want to deploy manually:
-
-```bash
-git clone <your-repo-url>
-cd <repo-name>
-bash deploy.sh
-```
-
-## Using the Status Check Script
-
-To verify that your Ollama deployment is working correctly:
-
-```bash
-python3 check_status.py
-# Or to check a remote instance:
-python3 check_status.py --host <your-ec2-ip>
 ```
 
 ## Troubleshooting
 
-If the deployment fails, check:
-1. Systemd service logs: `sudo journalctl -u ollama.service`
-2. Ollama server status: `systemctl status ollama.service`
-3. EC2 instance firewall settings (ensure port 11434 is open)
+If you encounter issues:
+
+1. Check if Ollama is running: `sudo systemctl status ollama.service`
+2. Check logs: `cat ollama_monitor.log`
+3. Restart the service: `sudo systemctl restart ollama.service`
+4. Verify model is downloaded: `ollama list`
 
 ## Security Considerations
 
-1. Ensure your EC2 security groups allow access to port 11434 only from trusted IPs
-2. Use proper IAM roles and permissions for your EC2 instance
-3. Keep your SSH keys secure and never commit them to the repository 
+- This setup uses root permissions for the Ollama service
+- Consider restricting access to the Ollama API with a firewall
+- Use a secure SSH key and keep it private 
