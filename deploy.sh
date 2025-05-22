@@ -1,4 +1,5 @@
 #!/bin/bash
+# Exit on any error with details
 set -e
 
 # Print execution steps
@@ -34,6 +35,14 @@ else
     install_with_pip_directly
 fi
 
+# Get the current user for the service file
+CURRENT_USER=$(whoami)
+echo "Current user: $CURRENT_USER"
+
+# Update the service file with the current user
+sed -i "s/User=ubuntu/User=$CURRENT_USER/g" ollama.service
+cat ollama.service
+
 # Install Ollama if not already installed
 if ! command -v ollama &> /dev/null; then
     echo "Installing Ollama..."
@@ -42,43 +51,79 @@ if ! command -v ollama &> /dev/null; then
     sleep 5
 fi
 
+# Kill any existing Ollama processes to ensure clean startup
+echo "Stopping any existing Ollama processes..."
+sudo pkill -f ollama || echo "No ollama processes running"
+
 # Copy the systemd service file
 sudo cp ollama.service /etc/systemd/system/
 
 # Reload systemd daemon and restart the service
 sudo systemctl daemon-reload
-sudo systemctl restart ollama.service
+sudo systemctl stop ollama.service || echo "Service was not running"
+sudo systemctl start ollama.service
 sudo systemctl enable ollama.service
 
-# Wait for Ollama to be fully up
-sleep 10
+# Check service status and logs
+echo "Checking Ollama service status..."
+sudo systemctl status ollama.service --no-pager || true
 
-# Pull the Mistral model if not already pulled
-if ! ollama list | grep -q mistral; then
+echo "Checking Ollama service logs..."
+sudo journalctl -u ollama.service --no-pager -n 30 || true
+
+# Wait longer for Ollama to be fully up
+echo "Waiting for Ollama service to be fully operational..."
+sleep 30
+
+# Check if Ollama is running via service status
+if ! systemctl is-active --quiet ollama.service; then
+    echo "⚠️ Ollama service is not showing as active. Trying manual start..."
+    # Try running Ollama directly if service isn't working
+    nohup ollama serve > ollama.log 2>&1 &
+    sleep 10
+fi
+
+# Test Ollama connectivity
+echo "Testing Ollama connectivity..."
+if ! curl -s -f http://localhost:11434/api/tags > /dev/null; then
+    echo "❌ Cannot connect to Ollama API. Showing logs:"
+    cat ollama.log || echo "No log file found"
+    echo "Trying alternative approach with direct server..."
+    # Start Ollama serve in background and continue
+    nohup ollama serve > ollama.log 2>&1 &
+    sleep 20
+fi
+
+# Check if we can connect to Ollama now
+if curl -s -f http://localhost:11434/api/tags > /dev/null; then
+    echo "✅ Ollama API is now accessible!"
+    
+    # Pull the Mistral model
     echo "Pulling Mistral model..."
     ollama pull mistral
-fi
 
-# Run the Python setup script
-python3 setup_ollama.py
+    # Check if the model was pulled successfully
+    if ollama list | grep -q mistral; then
+        echo "✅ Mistral model pulled successfully!"
+        
+        # Run the Python setup script
+        python3 setup_ollama.py
 
-# Check if the service is active
-if ! systemctl is-active --quiet ollama.service; then
-    echo "❌ ollama.service is not running."
-    sudo systemctl status ollama.service --no-pager
-    exit 1
+        # Run a quick model test
+        echo -e "\nTesting Mistral model..."
+        curl -X POST http://localhost:11434/api/generate -d '{
+          "model": "mistral",
+          "prompt": "Hello, please introduce yourself briefly.",
+          "stream": false
+        }'
+        echo -e "\n"
+        
+        echo "Deployment completed successfully!"
+    else
+        echo "❌ Failed to pull Mistral model."
+        exit 1
+    fi
 else
-    echo "✅ Ollama service is running successfully with Mistral model!"
-    ollama list
-fi
-
-# Run a quick model test
-echo -e "\nTesting Mistral model..."
-curl -X POST http://localhost:11434/api/generate -d '{
-  "model": "mistral",
-  "prompt": "Hello, please introduce yourself briefly.",
-  "stream": false
-}'
-echo -e "\n"
-
-echo "Deployment completed successfully!" 
+    echo "❌ Cannot connect to Ollama API after multiple attempts."
+    exit 1
+fi 
