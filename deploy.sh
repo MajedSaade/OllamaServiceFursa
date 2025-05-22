@@ -51,9 +51,9 @@ fi
 sudo systemctl restart ollama.service
 sleep 5
 
-# Pull the Gemma model
-echo "Pulling Gemma model..."
-ollama pull gemma:2b
+# Pull the Gemma 3 1B model (815MB)
+echo "Pulling Gemma 3 1B model (815MB)..."
+ollama pull gemma3:1b
 
 # Run our monitoring script with the virtual environment
 echo "Starting the monitoring Python script..."

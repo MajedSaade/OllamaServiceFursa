@@ -1,6 +1,6 @@
-# Ollama with Gemma 2B Automated Deployment
+# Ollama with Gemma 3 1B (815MB) Automated Deployment
 
-This repository contains automation scripts to deploy Ollama with the Gemma 2B model on an EC2 instance using GitHub Actions for continuous deployment.
+This repository contains automation scripts to deploy Ollama with the Gemma 3 1B model (approximately 815MB in size) on an EC2 instance using GitHub Actions for continuous deployment.
 
 ## Repository Structure
 
@@ -48,7 +48,7 @@ You can test the model directly on your EC2 instance:
 
 ```bash
 curl -X POST http://localhost:11434/api/generate -d '{
-  "model": "gemma:2b",
+  "model": "gemma3:1b",
   "prompt": "What is the capital of France?"
 }'
 ```
