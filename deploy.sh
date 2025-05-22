@@ -51,9 +51,15 @@ fi
 sudo systemctl restart ollama.service
 sleep 5
 
-# Pull the Gemma 3 1B model (815MB)
-echo "Pulling Gemma 3 1B model (815MB)..."
-ollama pull gemma3:1b
+# Check if Gemma 3 1B model is already pulled
+echo "Checking if Gemma 3 1B model is already available..."
+if ollama list | grep -q "gemma3:1b"; then
+    echo "Gemma 3 1B model is already pulled and available."
+else
+    # Pull the Gemma 3 1B model (815MB)
+    echo "Pulling Gemma 3 1B model (815MB)..."
+    ollama pull gemma3:1b
+fi
 
 # Run our monitoring script with the virtual environment
 echo "Starting the monitoring Python script..."
