@@ -12,17 +12,19 @@ else
     echo "Ollama is already installed."
 fi
 
-# Check if pip3 is installed, install it if missing
-if ! command -v pip3 &> /dev/null; then
-    echo "pip3 not found, installing python3-pip..."
-    sudo apt-get update
-    sudo apt-get install -y python3-pip
-    echo "pip3 installed successfully!"
-fi
+# Install required packages for Python virtual environment
+echo "Installing Python prerequisites..."
+sudo apt-get update
+sudo apt-get install -y python3-full python3-venv
 
-# Install dependencies for Python script
+# Create a virtual environment
+echo "Setting up Python virtual environment..."
+python3 -m venv venv
+source venv/bin/activate
+
+# Install dependencies in the virtual environment
 echo "Installing Python dependencies..."
-pip3 install -r requirements.txt
+pip install -r requirements.txt
 
 # Copy the systemd service file
 echo "Setting up Ollama service..."
@@ -41,9 +43,9 @@ sleep 5
 echo "Pulling Gemma-3-1b model..."
 ollama pull gemma:3b-1.1
 
-# Run our monitoring script
+# Run our monitoring script with the virtual environment
 echo "Starting the monitoring Python script..."
-python3 app.py &
+nohup venv/bin/python app.py > app.log 2>&1 &
 
 # Check if the service is active
 if ! systemctl is-active --quiet ollama.service; then
