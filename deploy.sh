@@ -6,21 +6,33 @@ set -x
 
 echo "Starting Ollama Mistral deployment..."
 
-# Check and install required packages
-sudo apt-get update
-sudo apt-get install -y python3-venv python3-full curl
+# Function to install Python packages using pip directly
+install_with_pip_directly() {
+    echo "Installing packages directly with pip --break-system-packages flag..."
+    python3 -m pip install --break-system-packages -r requirements.txt
+}
 
-# Create a virtual environment if it doesn't exist
-VENV_DIR="$HOME/ollama_venv"
-if [ ! -d "$VENV_DIR" ]; then
-    echo "Creating Python virtual environment..."
-    python3 -m venv "$VENV_DIR"
+# Try to set up Python environment
+echo "Setting up Python environment..."
+if ! command -v python3 &> /dev/null; then
+    echo "Python3 not found, installing..."
+    sudo apt-get update
+    sudo apt-get install -y python3
 fi
 
-# Activate virtual environment and install dependencies
-source "$VENV_DIR/bin/activate"
-pip install --upgrade pip
-pip install -r requirements.txt
+# Try multiple approaches for Python dependencies
+if command -v apt-get &> /dev/null; then
+    # Try installing packages with apt
+    echo "Installing Python packages via apt..."
+    sudo apt-get update
+    if ! sudo apt-get install -y python3-requests python3-yaml; then
+        echo "Apt installation failed, trying pip with break-system-packages flag"
+        install_with_pip_directly
+    fi
+else
+    # If apt is not available, use pip directly
+    install_with_pip_directly
+fi
 
 # Install Ollama if not already installed
 if ! command -v ollama &> /dev/null; then
@@ -48,7 +60,7 @@ if ! ollama list | grep -q mistral; then
 fi
 
 # Run the Python setup script
-"$VENV_DIR/bin/python3" setup_ollama.py
+python3 setup_ollama.py
 
 # Check if the service is active
 if ! systemctl is-active --quiet ollama.service; then
@@ -68,8 +80,5 @@ curl -X POST http://localhost:11434/api/generate -d '{
   "stream": false
 }'
 echo -e "\n"
-
-# Deactivate virtual environment
-deactivate
 
 echo "Deployment completed successfully!" 
