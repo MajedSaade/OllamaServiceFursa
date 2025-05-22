@@ -32,11 +32,11 @@ def get_model_list():
         print(f"Error getting model list: {e}")
         return None
 
-def check_mistral_model():
-    """Check if Mistral model is available"""
+def check_gemma_model():
+    """Check if Gemma 3 1B model is available"""
     models = get_model_list()
     if models and 'models' in models:
-        return any(model['name'] == 'mistral' for model in models['models'])
+        return any(model['name'] == 'gemma3:1b' for model in models['models'])
     return False
 
 def generate_config():
@@ -47,7 +47,7 @@ def generate_config():
             'port': 11434
         },
         'models': {
-            'default': 'mistral'
+            'default': 'gemma3:1b'
         },
         'deployment': {
             'timestamp': time.time(),
@@ -66,7 +66,7 @@ def test_model():
         print("Testing Mistral model with a simple prompt...")
         response = requests.post(
             "http://localhost:11434/api/generate",
-            json={"model": "mistral", "prompt": "Say hello world", "stream": False}
+            json={"model": "gemma3:1b", "prompt": "Say hello world", "stream": False}
         )
         
         if response.status_code == 200:
@@ -111,10 +111,10 @@ def main():
         print("ERROR: Ollama server is not running. Exiting.")
         sys.exit(1)
     
-    # Check if Mistral model is available
-    if not check_mistral_model():
-        print("Mistral model is not available. Trying to pull it...")
-        subprocess.run(["ollama", "pull", "mistral"], check=True)
+    # Check if Gemma 3 1B model is available
+    if not check_gemma_model():
+        print("Gemma 3 1B model is not available. Trying to pull it...")
+        subprocess.run(["ollama", "pull", "gemma3:1b"], check=True)
     
     # Generate configuration
     generate_config()
@@ -124,9 +124,9 @@ def main():
     
     # Test the model
     if test_model():
-        print("✅ Mistral model is working correctly!")
+        print("✅ Gemma 3 1B model is working correctly!")
     else:
-        print("⚠️ Could not verify Mistral model functionality.")
+        print("⚠️ Could not verify Gemma 3 1B model functionality.")
     
     print("Ollama setup completed!")
 

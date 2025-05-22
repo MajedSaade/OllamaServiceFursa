@@ -5,7 +5,7 @@ set -e
 # Print execution steps
 set -x
 
-echo "Starting Ollama Mistral deployment..."
+echo "Starting Ollama Gemma 3 1B deployment..."
 
 # Function to install Python packages using pip directly
 install_with_pip_directly() {
@@ -98,21 +98,21 @@ fi
 if curl -s -f http://localhost:11434/api/tags > /dev/null; then
     echo "✅ Ollama API is now accessible!"
     
-    # Pull the Mistral model
-    echo "Pulling Mistral model..."
-    ollama pull mistral
+    # Pull the Gemma 3 1B model
+    echo "Pulling Gemma 3 1B model..."
+    ollama pull gemma3:1b
 
     # Check if the model was pulled successfully
-    if ollama list | grep -q mistral; then
-        echo "✅ Mistral model pulled successfully!"
+    if ollama list | grep -q "gemma3:1b"; then
+        echo "✅ Gemma 3 1B model pulled successfully!"
         
         # Run the Python setup script
         python3 setup_ollama.py
 
         # Run a quick model test
-        echo -e "\nTesting Mistral model..."
+        echo -e "\nTesting Gemma 3 1B model..."
         curl -X POST http://localhost:11434/api/generate -d '{
-          "model": "mistral",
+          "model": "gemma3:1b",
           "prompt": "Hello, please introduce yourself briefly.",
           "stream": false
         }'
