@@ -1,7 +1,7 @@
-# Ollama Llama 3.2 Deployment
+# Ollama Llama 3.2 (3B) Deployment
 
-This repository contains an automated deployment solution for Ollama with the Llama 3.2 LLM model on an EC2 instance using GitHub Actions.
-
+This repository contains an automated deployment solution for Ollama with the Llama 3.2 (3B) LLM model on an EC2 instance using GitHub Actions.
+#Just to push
 ## Setup Instructions
 
 ### 1. Prerequisites
@@ -34,7 +34,7 @@ Add the following secrets to your GitHub repository:
    - Execute the deployment script
    - Install Ollama if needed
    - Configure the systemd service
-   - Pull the Llama 3.2 model (if not already downloaded)
+   - Pull the Llama 3.2 (3B) model (if not already downloaded)
    - Verify the deployment
 
 ### 5. Accessing Ollama
@@ -45,7 +45,7 @@ Once deployed, Ollama will be accessible on your EC2 instance:
 Example API usage:
 ```bash
 curl -X POST http://<your-ec2-ip>:11434/api/generate -d '{
-  "model": "llama3",
+  "model": "llama3:3b",
   "prompt": "Hello, how are you?",
   "stream": false
 }'

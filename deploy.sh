@@ -5,7 +5,7 @@ set -e
 # Print execution steps
 set -x
 
-echo "Starting Ollama Llama 3.2 deployment..."
+echo "Starting Ollama Llama 3.2 (3B) deployment..."
 
 # Install Python dependencies if needed
 if ! python3 -c "import requests, yaml" &>/dev/null; then
@@ -51,18 +51,18 @@ fi
 if curl -s -f http://localhost:11434/api/tags > /dev/null; then
     echo "✅ Ollama API is accessible!"
     
-    # Check if Llama 3.2 is already downloaded
-    if ollama list | grep -q "llama3"; then
-        echo "✅ Llama 3.2 model already downloaded"
+    # Check if Llama 3.2 3B is already downloaded
+    if ollama list | grep -q "llama3:3b"; then
+        echo "✅ Llama 3.2 (3B) model already downloaded"
     else
-        echo "Downloading Llama 3.2 model..."
-        ollama pull llama3
+        echo "Downloading Llama 3.2 (3B) model..."
+        ollama pull llama3:3b
     fi
     
     # Verify model is working
-    echo -e "\nTesting Llama 3.2 model..."
+    echo -e "\nTesting Llama 3.2 (3B) model..."
     curl -X POST http://localhost:11434/api/generate -d '{
-      "model": "llama3",
+      "model": "llama3:3b",
       "prompt": "Hello, please introduce yourself briefly.",
       "stream": false
     }'

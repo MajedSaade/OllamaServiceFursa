@@ -16,13 +16,13 @@ def check_ollama_running():
         return False
 
 def check_llama_model():
-    """Check if Llama 3.2 model is available"""
+    """Check if Llama 3.2 3B model is available"""
     try:
         response = requests.get("http://localhost:11434/api/tags")
         if response.status_code == 200:
             models = response.json()
             if 'models' in models:
-                return any(model['name'] == 'llama3' for model in models['models'])
+                return any(model['name'] == 'llama3:3b' for model in models['models'])
         return False
     except Exception as e:
         print(f"Error checking model: {e}")
@@ -44,7 +44,7 @@ def setup_ollama_firewall():
         print(f"Note: Could not configure firewall: {e}")
 
 def main():
-    print("Setting up Ollama with Llama 3.2...")
+    print("Setting up Ollama with Llama 3.2 (3B)...")
     
     # Wait for Ollama server to be fully up
     if not check_ollama_running():
@@ -56,9 +56,9 @@ def main():
     
     # Verify Llama model
     if check_llama_model():
-        print("✅ Llama 3.2 model is ready!")
+        print("✅ Llama 3.2 (3B) model is ready!")
     else:
-        print("Llama 3.2 model isn't available. Make sure to run 'ollama pull llama3'")
+        print("Llama 3.2 (3B) model isn't available. Make sure to run 'ollama pull llama3:3b'")
     
     print("Ollama setup completed!")
 
