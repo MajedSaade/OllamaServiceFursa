@@ -1,5 +1,5 @@
 [Unit]
-Description=Ollama Gemma 3 1B Service
+Description=Ollama Llama 3.2 Service
 After=network.target
 
 [Service]

@@ -1,6 +1,6 @@
-# Ollama Mistral Deployment
+# Ollama Llama 3.2 Deployment
 
-This repository contains an automated deployment solution for Ollama with the Mistral LLM model on an EC2 instance using GitHub Actions.
+This repository contains an automated deployment solution for Ollama with the Llama 3.2 LLM model on an EC2 instance using GitHub Actions.
 
 ## Setup Instructions
 
@@ -24,7 +24,6 @@ Add the following secrets to your GitHub repository:
 - `deploy.sh`: Deployment script to install and configure Ollama
 - `ollama.service`: Systemd service file for Ollama
 - `setup_ollama.py`: Python script for additional setup and verification
-- `requirements.txt`: Python dependencies
 - `check_status.py`: Script to check the status of Ollama deployment
 
 ### 4. Deployment Process
@@ -35,7 +34,7 @@ Add the following secrets to your GitHub repository:
    - Execute the deployment script
    - Install Ollama if needed
    - Configure the systemd service
-   - Pull the Mistral model
+   - Pull the Llama 3.2 model (if not already downloaded)
    - Verify the deployment
 
 ### 5. Accessing Ollama
@@ -46,7 +45,7 @@ Once deployed, Ollama will be accessible on your EC2 instance:
 Example API usage:
 ```bash
 curl -X POST http://<your-ec2-ip>:11434/api/generate -d '{
-  "model": "mistral",
+  "model": "llama3",
   "prompt": "Hello, how are you?",
   "stream": false
 }'
