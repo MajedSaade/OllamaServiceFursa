@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "Starting Ollama with Mistral deployment..."
+echo "Starting Ollama with Gemma deployment..."
 
 # Check if Ollama is already installed
 if ! command -v ollama &> /dev/null; then
@@ -30,13 +30,6 @@ pip install -r requirements.txt
 echo "Setting up Ollama service..."
 sudo cp ollama.service /etc/systemd/system/
 
-# Allow Ollama port through firewall if UFW is active
-echo "Configuring firewall to allow Ollama access..."
-if command -v ufw &> /dev/null && sudo ufw status | grep -q "active"; then
-    sudo ufw allow 11434/tcp
-    echo "Firewall rule added for Ollama (port 11434)"
-fi
-
 # Reload systemd and restart the service
 sudo systemctl daemon-reload
 sudo systemctl restart ollama.service
@@ -58,14 +51,14 @@ fi
 sudo systemctl restart ollama.service
 sleep 5
 
-# Check if Mistral model is already pulled
-echo "Checking if Mistral model is already available..."
-if ollama list | grep -q "mistral"; then
-    echo "Mistral model is already pulled and available."
+# Check if Gemma 3 1B model is already pulled
+echo "Checking if Gemma 3 1B model is already available..."
+if ollama list | grep -q "gemma3:1b"; then
+    echo "Gemma 3 1B model is already pulled and available."
 else
-    # Pull the Mistral model
-    echo "Pulling Mistral model..."
-    ollama pull mistral
+    # Pull the Gemma 3 1B model (815MB)
+    echo "Pulling Gemma 3 1B model (815MB)..."
+    ollama pull gemma3:1b
 fi
 
 # Run our monitoring script with the virtual environment
@@ -79,5 +72,4 @@ if ! systemctl is-active --quiet ollama.service; then
   exit 1
 fi
 
-echo "✅ Ollama with Mistral deployed successfully!"
-echo "The Ollama API is available at http://$(hostname -I | awk '{print $1}'):11434/api" 
+echo "✅ Ollama with Gemma-3-1b deployed successfully!" 
