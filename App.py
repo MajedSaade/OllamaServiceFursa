@@ -23,6 +23,8 @@ logger = logging.getLogger(__name__)
 OLLAMA_API_URL = "http://localhost:11434/api"
 CHECK_INTERVAL = 60  # seconds
 
+"Work ffs"
+
 def check_ollama_status():
     """Check if Ollama service is running and Gemma model is available"""
     try:
