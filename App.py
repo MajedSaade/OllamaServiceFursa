@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Ollama with Gemma 3 1B monitoring application
+Ollama with Mistral monitoring application
 """
 import os
 import time
@@ -24,7 +24,7 @@ OLLAMA_API_URL = "http://localhost:11434/api"
 CHECK_INTERVAL = 60  # seconds
 
 def check_ollama_status():
-    """Check if Ollama service is running and Gemma model is available"""
+    """Check if Ollama service is running and Mistral model is available"""
     try:
         # Check Ollama server status
         response = requests.get(f"{OLLAMA_API_URL}/tags")
@@ -32,25 +32,25 @@ def check_ollama_status():
             logger.error(f"Ollama service not responding properly: {response.status_code}")
             return False
         
-        # Check if Gemma model is available
+        # Check if Mistral model is available
         models = response.json().get('models', [])
-        gemma_available = any(model.get('name', '') == 'gemma3:1b' for model in models)
+        mistral_available = any(model.get('name', '') == 'mistral' for model in models)
         
-        if not gemma_available:
-            logger.warning("Gemma model not found in available models")
+        if not mistral_available:
+            logger.warning("Mistral model not found in available models")
             return False
             
-        logger.info("Ollama service is running with Gemma model available")
+        logger.info("Ollama service is running with Mistral model available")
         return True
     except Exception as e:
         logger.error(f"Error checking Ollama status: {e}")
         return False
 
-def test_gemma_response():
-    """Test a simple Gemma model response"""
+def test_mistral_response():
+    """Test a simple Mistral model response"""
     try:
         payload = {
-            "model": "gemma3:1b",
+            "model": "mistral",
             "prompt": "What is the capital of France?",
             "stream": False
         }
@@ -58,24 +58,24 @@ def test_gemma_response():
         response = requests.post(f"{OLLAMA_API_URL}/generate", json=payload)
         if response.status_code == 200:
             result = response.json()
-            logger.info(f"Gemma test response successful: {result.get('response', '')[:50]}...")
+            logger.info(f"Mistral test response successful: {result.get('response', '')[:50]}...")
             return True
         else:
-            logger.error(f"Failed to get response from Gemma: {response.status_code}")
+            logger.error(f"Failed to get response from Mistral: {response.status_code}")
             return False
     except Exception as e:
-        logger.error(f"Error testing Gemma response: {e}")
+        logger.error(f"Error testing Mistral response: {e}")
         return False
 
 def main():
-    logger.info("Starting Ollama with Gemma 3 1B monitoring service")
+    logger.info("Starting Ollama with Mistral monitoring service")
     
     while True:
         if check_ollama_status():
             # Test the model every hour with a simple query
-            test_gemma_response()
+            test_mistral_response()
         else:
-            logger.warning("Ollama service or Gemma model not available, will retry...")
+            logger.warning("Ollama service or Mistral model not available, will retry...")
         
         # Wait before next check
         time.sleep(CHECK_INTERVAL)

@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "Starting Ollama with Gemma deployment..."
+echo "Starting Ollama with Mistral deployment..."
 
 # Check if Ollama is already installed
 if ! command -v ollama &> /dev/null; then
@@ -58,14 +58,14 @@ fi
 sudo systemctl restart ollama.service
 sleep 5
 
-# Check if Gemma 3 1B model is already pulled
-echo "Checking if Gemma 3 1B model is already available..."
-if ollama list | grep -q "gemma3:1b"; then
-    echo "Gemma 3 1B model is already pulled and available."
+# Check if Mistral model is already pulled
+echo "Checking if Mistral model is already available..."
+if ollama list | grep -q "mistral"; then
+    echo "Mistral model is already pulled and available."
 else
-    # Pull the Gemma 3 1B model (815MB)
-    echo "Pulling Gemma 3 1B model (815MB)..."
-    ollama pull gemma3:1b
+    # Pull the Mistral model
+    echo "Pulling Mistral model..."
+    ollama pull mistral
 fi
 
 # Run our monitoring script with the virtual environment
@@ -79,5 +79,5 @@ if ! systemctl is-active --quiet ollama.service; then
   exit 1
 fi
 
-echo "✅ Ollama with Gemma-3-1b deployed successfully!"
+echo "✅ Ollama with Mistral deployed successfully!"
 echo "The Ollama API is available at http://$(hostname -I | awk '{print $1}'):11434/api" 
