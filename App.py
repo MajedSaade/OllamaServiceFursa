@@ -20,7 +20,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-OLLAMA_API_URL = "http://localhost:11434/api"
+OLLAMA_API_URL = "http://0.0.0.0:11434/api"
 CHECK_INTERVAL = 60  # seconds
 
 "New instance"
