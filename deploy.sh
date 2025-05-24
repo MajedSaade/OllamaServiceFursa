@@ -30,6 +30,14 @@ pip install -r requirements.txt
 echo "Setting up Ollama service..."
 sudo cp ollama.service /etc/systemd/system/
 
+# Create systemd override directory and config to make Ollama listen on all interfaces
+echo "Creating systemd override to listen on all interfaces..."
+sudo mkdir -p /etc/systemd/system/ollama.service.d/
+cat << EOF | sudo tee /etc/systemd/system/ollama.service.d/override.conf
+[Service]
+Environment="OLLAMA_HOST=0.0.0.0"
+EOF
+
 # Allow Ollama port through firewall if UFW is active
 echo "Configuring firewall to allow Ollama access..."
 if command -v ufw &> /dev/null && sudo ufw status | grep -q "active"; then
