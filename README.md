@@ -53,40 +53,6 @@ curl -X POST http://localhost:11434/api/generate -d '{
 }'
 ```
 
-### Connecting from External Machines
-
-The Ollama service is configured to listen on all network interfaces (0.0.0.0), allowing you to connect from external machines. To access the service from outside the EC2 instance:
-
-1. Make sure your EC2 security group allows inbound traffic on port 11434
-2. Use your EC2 instance's public IP or DNS name:
-
-```bash
-curl -X POST http://YOUR_EC2_IP:11434/api/generate -d '{
-  "model": "gemma3:1b",
-  "prompt": "What is the capital of France?"
-}'
-```
-
-### Connecting Mypolybot to Ollama
-
-To connect Mypolybot to your Ollama service:
-
-1. Make sure the Ollama service is running and listening on all interfaces (should show `*:11434` when running `ss -tulpn | grep 11434`)
-2. Configure Mypolybot to connect to the correct IP address of your instance:
-   - Use the public IP or DNS name if connecting from outside the network
-   - Example configuration: `http://YOUR_EC2_IP:11434/api/chat`
-3. Ensure there are no firewall rules blocking the connection between Mypolybot and the Ollama instance
-
-If you're still having trouble connecting Mypolybot to Ollama:
-- Check the App.py log (`cat ollama_monitor.log`) to verify network configuration
-- Test connectivity manually: `curl -X GET http://YOUR_EC2_IP:11434/api/tags`
-- Verify the Gemma model is available: `ollama list | grep gemma3:1b`
-
-If you're having connection issues:
-- Verify the Ollama service is listening on all interfaces: `ss -tulpn | grep 11434`
-- Check your EC2 security group settings to ensure port 11434 is open
-- Confirm your EC2 instance doesn't have a firewall blocking the connection
-
 ## Troubleshooting
 
 If you encounter issues:

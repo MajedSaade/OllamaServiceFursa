@@ -12,13 +12,6 @@ else
     echo "Ollama is already installed."
 fi
 
-# Configure Ollama to listen on all interfaces
-echo "Configuring Ollama to listen on all interfaces..."
-# Set environment variable globally
-echo 'OLLAMA_HOST=0.0.0.0' | sudo tee /etc/systemd/system.conf.d/ollama.conf
-echo 'OLLAMA_HOST=0.0.0.0' | sudo tee /etc/environment.d/ollama.conf
-export OLLAMA_HOST=0.0.0.0
-
 # Install required packages for Python virtual environment
 echo "Installing Python prerequisites..."
 sudo apt-get update
@@ -33,42 +26,9 @@ source venv/bin/activate
 echo "Installing Python dependencies..."
 pip install -r requirements.txt
 
-# Create or update the systemd service file
-echo "Setting up Ollama service with proper network configuration..."
-cat > ollama.service << EOF
-[Unit]
-Description=Ollama Service
-After=network.target
-
-[Service]
-Type=simple
-User=root
-Environment="OLLAMA_HOST=0.0.0.0"
-ExecStart=/usr/local/bin/ollama serve
-Restart=always
-RestartSec=5
-StandardOutput=syslog
-StandardError=syslog
-SyslogIdentifier=ollama
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
 # Copy the systemd service file
+echo "Setting up Ollama service..."
 sudo cp ollama.service /etc/systemd/system/
-
-# Make sure directory exists for systemd config
-sudo mkdir -p /etc/systemd/system.conf.d/
-
-# Create a systemd drop-in to set the environment variable
-echo "Creating systemd environment configuration..."
-sudo mkdir -p /etc/systemd/system/ollama.service.d/
-cat > override.conf << EOF
-[Service]
-Environment="OLLAMA_HOST=0.0.0.0"
-EOF
-sudo cp override.conf /etc/systemd/system/ollama.service.d/
 
 # Reload systemd and restart the service
 sudo systemctl daemon-reload
@@ -78,30 +38,6 @@ sudo systemctl enable ollama.service
 # Wait for Ollama service to be fully started
 echo "Waiting for Ollama service to start..."
 sleep 5
-
-# Verify Ollama is listening on all interfaces
-echo "Verifying Ollama network configuration..."
-if ss -tulpn | grep -q ".*:11434"; then
-    echo "✅ Ollama is properly configured to listen on all interfaces."
-else
-    echo "❌ Ollama is not listening on all interfaces. Attempting to fix..."
-    sudo systemctl stop ollama.service
-    OLLAMA_HOST=0.0.0.0 sudo -E /usr/local/bin/ollama serve &
-    sleep 5
-    if ss -tulpn | grep -q ".*:11434"; then
-        echo "✅ Ollama is now properly configured to listen on all interfaces."
-        
-        # Kill the temporary process and start the service properly
-        sudo pkill -f "ollama serve"
-        sudo systemctl start ollama.service
-    else
-        echo "❌ Failed to configure Ollama to listen on all interfaces."
-    fi
-fi
-
-# Verify IP addresses and network configuration
-echo "Network configuration:"
-ip -4 addr show | grep -oP '(?<=inet\s)\d+(\.\d+){3}'
 
 # Make sure Ollama directories exist and are properly initialized
 echo "Initializing Ollama directories..."
@@ -127,8 +63,7 @@ fi
 
 # Run our monitoring script with the virtual environment
 echo "Starting the monitoring Python script..."
-export OLLAMA_HOST=0.0.0.0
-nohup venv/bin/python App.py > app.log 2>&1 &
+nohup venv/bin/python app.py > app.log 2>&1 &
 
 # Check if the service is active
 if ! systemctl is-active --quiet ollama.service; then
