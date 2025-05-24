@@ -30,6 +30,13 @@ pip install -r requirements.txt
 echo "Setting up Ollama service..."
 sudo cp ollama.service /etc/systemd/system/
 
+# Allow Ollama port through firewall if UFW is active
+echo "Configuring firewall to allow Ollama access..."
+if command -v ufw &> /dev/null && sudo ufw status | grep -q "active"; then
+    sudo ufw allow 11434/tcp
+    echo "Firewall rule added for Ollama (port 11434)"
+fi
+
 # Reload systemd and restart the service
 sudo systemctl daemon-reload
 sudo systemctl restart ollama.service
@@ -72,4 +79,5 @@ if ! systemctl is-active --quiet ollama.service; then
   exit 1
 fi
 
-echo "✅ Ollama with Gemma-3-1b deployed successfully!" 
+echo "✅ Ollama with Gemma-3-1b deployed successfully!"
+echo "The Ollama API is available at http://$(hostname -I | awk '{print $1}'):11434/api" 
